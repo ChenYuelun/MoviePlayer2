@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.example.movieplayer2.view.TitleBarLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:background="#ff3097fd"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:src="@drawable/ic_topbanner_logo" />
+
+    <TextView
+        android:id="@+id/searchBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:background="@drawable/searchbox_selector"
+        android:drawableLeft="@drawable/ic_sousuokuang"
+        android:text="全网搜索"
+        android:textColor="@drawable/searchbox_textcolor_selector" />
+
+    <RelativeLayout
+        android:id="@+id/ll_game"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp">
+
+        <TextView
+            android:id="@+id/tv_game"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_topbanner_game" />
+
+        <View
+            android:layout_width="5dp"
+            android:layout_height="5dp"
+            android:layout_toRightOf="@id/tv_game"
+            android:background="@drawable/game_point" />
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:src="@drawable/ic_topbanner_record" >
+
+    </ImageView>
+
+
+</com.example.movieplayer2.view.TitleBarLayout>

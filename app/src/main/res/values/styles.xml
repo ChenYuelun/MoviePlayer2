@@ -1,0 +1,41 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+
+    <style name="VideoPlayerStyle" parent="AppTheme">\
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+
+
+    android:textColor="@drawable/radiobutto_color_selector"
+    android:textSize="12sp"
+    android:drawablePadding="5dp"
+    android:gravity="center"
+    android:text="本地视频"
+    android:button="@null"
+    android:layout_weight="1"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content" />
+
+    <style name="RadioButtonStyle">
+        <item name="android:textColor" >@drawable/radiobutto_color_selector</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:button">@null</item>
+        <item name="android:drawablePadding">5dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+</resources>
