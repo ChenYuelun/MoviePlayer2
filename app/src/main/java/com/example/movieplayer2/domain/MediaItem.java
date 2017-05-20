@@ -1,10 +1,12 @@
 package com.example.movieplayer2.domain;
 
+import java.io.Serializable;
+
 /**
  * Created by chenyuelun on 2017/5/19.
  */
 
-public class MediaItem {
+public class MediaItem implements Serializable {
     private String name;
     private long duration;
     private long size;

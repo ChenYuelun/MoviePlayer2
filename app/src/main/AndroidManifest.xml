@@ -20,9 +20,10 @@
         <activity
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".MainActivity"
-            android:launchMode="singleTask" />
+             android:launchMode="singleTask" />
         <activity android:name=".Activity.LocalVideoPlayerActivity"
             android:theme="@style/VideoPlayerStyle"
+            android:screenOrientation="landscape"
             ></activity>
     </application>
 
