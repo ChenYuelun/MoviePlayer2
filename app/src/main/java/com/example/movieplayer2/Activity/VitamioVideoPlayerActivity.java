@@ -1,18 +1,16 @@
 package com.example.movieplayer2.Activity;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
@@ -29,18 +27,20 @@ import android.widget.Toast;
 import com.example.movieplayer2.R;
 import com.example.movieplayer2.domain.MediaItem;
 import com.example.movieplayer2.utils.Utils;
-import com.example.movieplayer2.view.VideoView;
+import com.example.movieplayer2.view.VitamioVideoView;
+import io.vov.vitamio.MediaPlayer;
+import io.vov.vitamio.Vitamio;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class LocalVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
+public class VitamioVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int PROCESS = 1;
     private static final int NEWTIME = 99;
     private static final int HIDE_MEDIACONTROLLER = 2;
     private static final int SHOW_NET_SPEED = 3;
-    private VideoView vv;
+    private VitamioVideoView vv;
 
     private LinearLayout llTop;
     private TextView tvName;
@@ -96,8 +96,9 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
      * (http://www.buzzingandroid.com/tools/android-layout-finder)
      */
     private void findViews() {
-        setContentView(R.layout.activity_local_video_player);
-        vv = (VideoView) findViewById(R.id.vv);
+        Vitamio.isInitialized(getApplicationContext());
+        setContentView(R.layout.activity_vitamio_video_player);
+        vv = (VitamioVideoView) findViewById(R.id.vv);
         llTop = (LinearLayout) findViewById(R.id.ll_top);
         tvName = (TextView) findViewById(R.id.tv_name);
         ivBattery = (ImageView) findViewById(R.id.iv_battery);
@@ -141,7 +142,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case PROCESS:
-                    int currentPosition = vv.getCurrentPosition();
+                    int currentPosition = (int) vv.getCurrentPosition();
                     seekbarVideo.setProgress(currentPosition);
                     tvCurrentTime.setText(utils.stringForTime(currentPosition));
                     handler.sendEmptyMessageDelayed(PROCESS, 1000);
@@ -182,7 +183,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
 
                 case SHOW_NET_SPEED:
                     if(isNetUri){
-                        String netSpeed = utils.getNetSpeed(LocalVideoPlayerActivity.this);
+                        String netSpeed = utils.getNetSpeed(VitamioVideoPlayerActivity.this);
                         tv_loading_net_speed.setText("正在加载中...."+netSpeed);
                         tv_net_speed.setText("正在缓冲...."+netSpeed);
                         sendEmptyMessageDelayed(SHOW_NET_SPEED,1000);
@@ -203,6 +204,38 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
         SimpleDateFormat format = new SimpleDateFormat("HH:mm");
         handler.sendEmptyMessage(NEWTIME);
         return format.format(new Date());
+    }
+
+    private void switchPlayer() {
+        new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("如果当前为万能播放器播放，当播放有色块，播放质量不好，请切换到系统播放器播放")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startSystemPlayer();
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
+    private void startSystemPlayer() {
+        if(vv != null){
+            vv.stopPlayback();
+        }
+        Intent intent = new Intent(this, LocalVideoPlayerActivity.class);
+        if(mediaItems != null && mediaItems.size() >0){
+            Bundle bunlder = new Bundle();
+            bunlder.putSerializable("videoList",mediaItems);
+            intent.putExtra("position",position);
+            //放入Bundler
+            intent.putExtras(bunlder);
+        }else if(uri != null){
+            intent.setData(uri);
+        }
+        startActivity(intent);
+        finish();//关闭系统播放器
     }
 
     /**
@@ -488,7 +521,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
                 videoWidth = mp.getVideoWidth();
                 videoHeight = mp.getVideoHeight();
 
-                int duration = vv.getDuration();
+                int duration = (int) vv.getDuration();
                 seekbarVideo.setMax(duration);
                 tvDuration.setText(utils.stringForTime(duration));
                 vv.start();
@@ -497,6 +530,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
                 setVideoType(DEFUALT_SCREEN);
                 handler.sendEmptyMessage(PROCESS);
                 isShowMediaController =true;
+
                 if(vv.isPlaying()){
                     //设置暂停
                     btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
@@ -511,8 +545,9 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
         vv.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                //Toast.makeText(LocalVideoPlayerActivity.this, "播放出错了", Toast.LENGTH_SHORT).show();
-                startVitamioPlayer();
+                //Toast.makeText(VitamioVideoPlayerActivity.this, "播放出错了", Toast.LENGTH_SHORT).show();
+
+                showErrorDiaLog();
                 return true;
             }
         });
@@ -588,36 +623,17 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
 
     }
 
-    private void switchPlayer() {
-        new AlertDialog.Builder(this)
-                .setTitle("提示")
-                .setMessage("当前使用系统播放器播放，当播放有声音没有画面，请切换到万能播放器播放")
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        startVitamioPlayer();
-                    }
-                })
-                .setNegativeButton("取消", null)
-                .show();
-    }
-
-    private void startVitamioPlayer() {
-        if(vv != null){
-            vv.stopPlayback();
-        }
-        Intent intent = new Intent(this, VitamioVideoPlayerActivity.class);
-        if(mediaItems != null && mediaItems.size() >0){
-            Bundle bunlder = new Bundle();
-            bunlder.putSerializable("videoList",mediaItems);
-            intent.putExtra("position",position);
-            //放入Bundler
-            intent.putExtras(bunlder);
-        }else if(uri != null){
-            intent.setData(uri);
-        }
-        startActivity(intent);
-        finish();//关闭系统播放器
+    private void showErrorDiaLog() {
+        new AlertDialog.Builder(VitamioVideoPlayerActivity.this)
+                    .setTitle("提示")
+                    .setMessage("当前视频无法播放，请检查网络或视频文件是否有损坏")
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    })
+                    .show();
     }
 
     private void updataVoiceProgress(int progress) {
@@ -654,7 +670,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
             tvName.setText(mediaItem.getName());
             setButtonStatus();
         }else {
-            Toast.makeText(LocalVideoPlayerActivity.this, "播放列表已播放完毕", Toast.LENGTH_SHORT).show();
+            Toast.makeText(VitamioVideoPlayerActivity.this, "播放列表已播放完毕", Toast.LENGTH_SHORT).show();
             finish();
         }
     }
