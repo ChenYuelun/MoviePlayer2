@@ -10,27 +10,29 @@ import android.widget.TextView;
 ;
 
 import com.example.movieplayer2.R;
-import com.example.movieplayer2.domain.MovieInfo;
+import com.example.movieplayer2.domain.MediaItem;
 import com.example.movieplayer2.utils.Utils;
 
 import org.xutils.image.ImageOptions;
 import org.xutils.x;
 
-import java.util.List;
+import java.util.ArrayList;
 
 
 
 public class NetVideoAdapter extends BaseAdapter {
-    private final Context context;
-    private final List<MovieInfo.TrailersBean> datas;
+    private Context context;
+    private  ArrayList<MediaItem> datas;
     private Utils utils;
     private ImageOptions options;
 
 
 
-    public NetVideoAdapter(Context context, List<MovieInfo.TrailersBean> trailers) {
+
+
+    public NetVideoAdapter(Context context, ArrayList<MediaItem> mediaItems) {
         this.context = context;
-        this.datas = trailers;
+        this.datas = mediaItems;
         utils = new Utils();
 
         options = new ImageOptions.Builder()
@@ -47,7 +49,7 @@ public class NetVideoAdapter extends BaseAdapter {
     }
 
     @Override
-    public MovieInfo.TrailersBean getItem(int position) {
+    public MediaItem getItem(int position) {
         return datas.get(position);
     }
 
@@ -71,11 +73,11 @@ public class NetVideoAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        MovieInfo.TrailersBean bean = datas.get(position);
-        viewHolder.tv_name.setText(bean.getMovieName());
-        viewHolder.tv_content.setText(bean.getVideoTitle());
-        viewHolder.tv_size.setText(utils.stringForTime(bean.getVideoLength()*1000));
-        x.image().bind(viewHolder.icon,bean.getCoverImg(),options);
+        MediaItem item = datas.get(position);
+        viewHolder.tv_name.setText(item.getName());
+        viewHolder.tv_content.setText(item.getContent());
+        viewHolder.tv_size.setText(utils.stringForTime((int) item.getDuration()));
+        x.image().bind(viewHolder.icon,item.getIcon(),options);
 
 
         return convertView;

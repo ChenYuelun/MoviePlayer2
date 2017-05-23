@@ -7,10 +7,37 @@ import java.io.Serializable;
  */
 
 public class MediaItem implements Serializable {
+    private String content;
+    private String icon;
     private String name;
     private long duration;
     private long size;
     private String data;
+
+    public MediaItem(String name, long duraition, long size, String data, String icon, String content) {
+        this.name = name;
+        this.duration = duraition;
+        this.size = size;
+        this.data = data;
+        this.icon = icon;
+        this.content =content;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
 
     public String getName() {
         return name;
@@ -49,6 +76,8 @@ public class MediaItem implements Serializable {
         this.duration = duration;
         this.size = size;
         this.data = data;
+        this.icon = null;
+        this.content = null;
     }
 
     @Override
