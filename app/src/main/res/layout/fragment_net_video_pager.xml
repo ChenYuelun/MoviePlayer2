@@ -8,6 +8,11 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/refresh"
         app:isLoadMore="true"
+        app:overlay="false"
+        app:wave_show="false"
+        app:wave_color="#90ffffff"
+        app:progress_colors="@array/material_colors"
+        app:wave_height_type="higher"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         >
