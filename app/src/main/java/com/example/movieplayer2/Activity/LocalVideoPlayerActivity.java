@@ -19,6 +19,7 @@ import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -34,6 +35,8 @@ import com.example.movieplayer2.view.VideoView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static android.R.attr.startX;
 
 public class LocalVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int PROCESS = 1;
@@ -88,6 +91,10 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
     private LinearLayout ll_buffering;
     private TextView tv_net_speed;
 
+    private int duration;
+    private int currentPosition;
+
+
 
     /**
      * Find the Views in the layout<br />
@@ -141,7 +148,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case PROCESS:
-                    int currentPosition = vv.getCurrentPosition();
+                    currentPosition = vv.getCurrentPosition();
                     seekbarVideo.setProgress(currentPosition);
                     tvCurrentTime.setText(utils.stringForTime(currentPosition));
                     handler.sendEmptyMessageDelayed(PROCESS, 1000);
@@ -388,6 +395,10 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
     private float touchRang;
     private int mvoice;
 
+    private float startX;
+    private float newX;
+    private int mPosition;
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -395,6 +406,8 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN :
                 startY = event.getY();
+                startX = event.getX();
+                mPosition =vv.getCurrentPosition();
                 touchRang =Math.min(screenWidth, screenHeight);//screenHeight
                 mvoice = am.getStreamVolume(AudioManager.STREAM_MUSIC);
                 handler.removeMessages(HIDE_MEDIACONTROLLER);
@@ -402,12 +415,38 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
 
             case MotionEvent.ACTION_MOVE :
                 newY = event.getY();
+                newX = event.getX();
                 float distanceY = startY - newY;
-                float voice = (distanceY/touchRang)*maxVoice;
-                float changVoice = Math.min(Math.max(voice+mvoice,0),maxVoice);
-                if(changVoice != 0) {
-                    updataVoiceProgress((int) changVoice);
+                float distanceX = newX - startX;
+
+                if(Math.abs(distanceY) > Math.abs(distanceX) && Math.abs(distanceY) > 8) {
+                    if(startX<screenWidth/2) {
+                        final double FLING_MIN_DISTANCE = 0.5;
+                        final double FLING_MIN_VELOCITY = 0.5;
+                        if (distanceY > FLING_MIN_DISTANCE && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                            setBrightness(10);
+                        }
+                        if (distanceY < FLING_MIN_DISTANCE && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
+                            setBrightness(-10);
+                        }
+                    }else {
+                        float voice = (distanceY/touchRang)*maxVoice;
+                        float changVoice = Math.min(Math.max(voice+mvoice,0),maxVoice);
+                        if(changVoice != 0) {
+                            updataVoiceProgress((int) changVoice);
+                        }
+
+                    }
+                }else if (Math.abs(distanceY) < Math.abs(distanceX) && Math.abs(distanceX) > 8){
+                    float video = (distanceX/screenWidth)*duration;
+                    float changVideo = Math.min(Math.max(video+mPosition,0),duration);
+                    if(changVideo != 0) {
+                        vv.seekTo((int) changVideo);
+                        seekbarVideo.setProgress((int) changVideo);
+                    }
                 }
+
+
 
                 break;
             case MotionEvent.ACTION_UP :
@@ -436,6 +475,17 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
         }
 
         return super.onKeyDown(keyCode, event);
+    }
+
+    public void setBrightness(float brightness) {
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.screenBrightness = lp.screenBrightness + brightness / 255.0f;
+        if (lp.screenBrightness > 1) {
+            lp.screenBrightness = 1;
+        } else if (lp.screenBrightness < 0.1) {
+            lp.screenBrightness = (float) 0.1;
+        }
+        getWindow().setAttributes(lp);
     }
 
     private boolean isShowMediaController;
@@ -488,7 +538,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
                 videoWidth = mp.getVideoWidth();
                 videoHeight = mp.getVideoHeight();
 
-                int duration = vv.getDuration();
+                duration = vv.getDuration();
                 seekbarVideo.setMax(duration);
                 tvDuration.setText(utils.stringForTime(duration));
                 vv.start();
