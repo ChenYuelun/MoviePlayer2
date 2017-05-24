@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.example.movieplayer2.R;
 import com.example.movieplayer2.domain.MediaItem;
 import com.example.movieplayer2.utils.Utils;
+import com.squareup.picasso.Picasso;
 
 import org.xutils.image.ImageOptions;
 import org.xutils.x;
@@ -24,7 +25,7 @@ public class NetVideoAdapter extends BaseAdapter {
     private Context context;
     private  ArrayList<MediaItem> datas;
     private Utils utils;
-    private ImageOptions options;
+    //private ImageOptions options;
 
 
 
@@ -35,11 +36,11 @@ public class NetVideoAdapter extends BaseAdapter {
         this.datas = mediaItems;
         utils = new Utils();
 
-        options = new ImageOptions.Builder()
-                .setImageScaleType(ImageView.ScaleType.CENTER_CROP)
-                .setFailureDrawableId(R.drawable.video_default)
-                .setLoadingDrawableId(R.drawable.video_default)
-                .build();
+//        options = new ImageOptions.Builder()
+//                .setImageScaleType(ImageView.ScaleType.CENTER_CROP)
+//                .setFailureDrawableId(R.drawable.video_default)
+//                .setLoadingDrawableId(R.drawable.video_default)
+//                .build();
     }
 
 
@@ -77,7 +78,12 @@ public class NetVideoAdapter extends BaseAdapter {
         viewHolder.tv_name.setText(item.getName());
         viewHolder.tv_content.setText(item.getContent());
         viewHolder.tv_size.setText(utils.stringForTime((int) item.getDuration()));
-        x.image().bind(viewHolder.icon,item.getIcon(),options);
+        //x.image().bind(viewHolder.icon,item.getIcon(),options);
+        Picasso.with(context)
+                .load(item.getIcon())
+                .placeholder(R.drawable.video_default)
+                .error(R.drawable.video_default)
+                .into(viewHolder.icon);
 
 
         return convertView;

@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -36,13 +35,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static android.R.attr.startX;
-
 public class LocalVideoPlayerActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int PROCESS = 1;
     private static final int NEWTIME = 99;
     private static final int HIDE_MEDIACONTROLLER = 2;
     private static final int SHOW_NET_SPEED = 3;
+    private static final int HIDE_BRIGHT = 4;
+    private static final int HIDE_VIOCE = 5;
     private VideoView vv;
 
     private LinearLayout llTop;
@@ -93,6 +92,8 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
 
     private int duration;
     private int currentPosition;
+    private TextView tv_bright;
+    private TextView tv_voice;
 
 
 
@@ -125,6 +126,8 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
         tv_net_speed = (TextView)findViewById(R.id.tv_net_speed);
         ll_loading = (LinearLayout)findViewById(R.id.ll_loading);
         tv_loading_net_speed = (TextView)findViewById(R.id.tv_loading_net_speed);
+        tv_bright = (TextView)findViewById(R.id.tv_bright);
+        tv_voice = (TextView)findViewById(R.id.tv_voice);
 
         btnVoice.setOnClickListener(this);
         btnSwitchPlayer.setOnClickListener(this);
@@ -137,7 +140,9 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
         seekbarVoice.setMax(maxVoice);
         seekbarVoice.setProgress(currentVoice);
         hideMediaController();
+        isShowMediaController = false;
 
+        handler.sendEmptyMessage(NEWTIME);
         handler.sendEmptyMessage(SHOW_NET_SPEED);
     }
 
@@ -195,6 +200,14 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
                         sendEmptyMessageDelayed(SHOW_NET_SPEED,1000);
                     }
                     break;
+
+                case HIDE_BRIGHT:
+                    tv_bright.setVisibility(View.GONE);
+                    break;
+                case HIDE_VIOCE:
+                    tv_voice.setVisibility(View.GONE);
+                    break;
+
 
             }
 
@@ -346,6 +359,9 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
         receiver = new MyBroadCastReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        intentFilter.addAction(Intent.ACTION_USER_PRESENT);
         registerReceiver(receiver, intentFilter);
         detector = new GestureDetector(this,new GestureDetector.SimpleOnGestureListener(){
             @Override
@@ -421,6 +437,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
 
                 if(Math.abs(distanceY) > Math.abs(distanceX) && Math.abs(distanceY) > 8) {
                     if(startX<screenWidth/2) {
+                        tv_bright.setVisibility(View.VISIBLE);
                         final double FLING_MIN_DISTANCE = 0.5;
                         final double FLING_MIN_VELOCITY = 0.5;
                         if (distanceY > FLING_MIN_DISTANCE && Math.abs(distanceY) > FLING_MIN_VELOCITY) {
@@ -450,6 +467,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
 
                 break;
             case MotionEvent.ACTION_UP :
+                handler.sendEmptyMessageDelayed(HIDE_BRIGHT,2000);
                 handler.sendEmptyMessageDelayed(HIDE_MEDIACONTROLLER,4000);
                 break;
         }
@@ -478,6 +496,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
     }
 
     public void setBrightness(float brightness) {
+
         WindowManager.LayoutParams lp = getWindow().getAttributes();
         lp.screenBrightness = lp.screenBrightness + brightness / 255.0f;
         if (lp.screenBrightness > 1) {
@@ -486,6 +505,8 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
             lp.screenBrightness = (float) 0.1;
         }
         getWindow().setAttributes(lp);
+        float sb = lp.screenBrightness;
+        tv_bright.setText("亮度："+(int) Math.ceil(sb * 100) + "%");
     }
 
     private boolean isShowMediaController;
@@ -504,8 +525,26 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            int level = intent.getIntExtra("level", 0);
-            setBatteryData(level);
+            switch (intent.getAction()) {
+
+                case  Intent.ACTION_BATTERY_CHANGED:
+                    int level = intent.getIntExtra("level", 0);
+                    setBatteryData(level);
+                    break;
+                case  Intent.ACTION_SCREEN_ON:
+                    //vv.start();
+                    break;
+                case  Intent.ACTION_SCREEN_OFF:
+                    //VideoPlayOrPause();
+                    vv.pause();
+                    btnStartPause.setBackgroundResource(R.drawable.btn_start_selector);
+                    break;
+                case  Intent.ACTION_USER_PRESENT:
+                    onPause();
+
+                    break;
+            }
+
 
         }
     }
@@ -546,7 +585,6 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
 
                 setVideoType(DEFUALT_SCREEN);
                 handler.sendEmptyMessage(PROCESS);
-                isShowMediaController =true;
                 if(vv.isPlaying()){
                     //设置暂停
                     btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
@@ -562,7 +600,7 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 //Toast.makeText(LocalVideoPlayerActivity.this, "播放出错了", Toast.LENGTH_SHORT).show();
-                startVitamioPlayer();
+                //startVitamioPlayer();
                 return true;
             }
         });
@@ -672,8 +710,13 @@ public class LocalVideoPlayerActivity extends AppCompatActivity implements View.
 
     private void updataVoiceProgress(int progress) {
         currentVoice = progress;
+        tv_voice.setVisibility(View.VISIBLE);
+
         //真正改变声音
         am.setStreamVolume(AudioManager.STREAM_MUSIC,currentVoice,0);
+        int v = currentVoice * 100 / maxVoice;
+        tv_voice.setText("音量:" + v +"%" );
+        handler.sendEmptyMessageDelayed(HIDE_VIOCE,2000);
         //改变进度条
         seekbarVoice.setProgress(currentVoice);
         if(currentVoice <=0){

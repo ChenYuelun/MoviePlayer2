@@ -1,8 +1,11 @@
 package com.example.movieplayer2.pager;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -40,13 +43,16 @@ public class NetVideoPager extends BaseFragment {
     private MaterialRefreshLayout materialRefreshLayout;
     private boolean isMoreData = false;
     private boolean isFirstLoad = true;
+    private SharedPreferences sp;
 
     @Override
     public View initView() {
         View view = View.inflate(context, R.layout.fragment_net_video_pager, null);
         lv = (ListView) view.findViewById(R.id.lv);
+        sp = context.getSharedPreferences("videoChche", Context.MODE_PRIVATE);
         tv_nodata = (TextView) view.findViewById(R.id.tv_nodata);
         mediaItems = new ArrayList<>();
+
         materialRefreshLayout = (MaterialRefreshLayout)view.findViewById(R.id.refresh);
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
@@ -87,6 +93,11 @@ public class NetVideoPager extends BaseFragment {
     @Override
     public void initDatas() {
         super.initDatas();
+        String chche = sp.getString("videoChche", "");
+        if(!TextUtils.isEmpty(chche)) {
+            Log.e("TAG","加载缓存数据" + chche);
+            setData(chche);
+        }
         getDataFromNet();
 
     }
@@ -97,6 +108,8 @@ public class NetVideoPager extends BaseFragment {
             @Override
             public void onSuccess(String result) {
                 Log.e("TAG", "联网成功");
+                SharedPreferences.Editor edit = sp.edit();
+                edit.putString("videoChche",result).commit();
                 setData(result);
                 materialRefreshLayout.finishRefresh();
             }
