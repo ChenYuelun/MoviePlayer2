@@ -46,10 +46,10 @@ public class LocalAudioPager extends BaseFragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 Intent intent = new Intent(context,LocalAudioPlayerActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putSerializable("videoList",mediaItems);
+//                Bundle bundle = new Bundle();
+//                bundle.putSerializable("videoList",mediaItems);
                 intent.putExtra("position",position);
-                intent.putExtras(bundle);
+//                intent.putExtras(bundle);
                 startActivity(intent);
             }
         });
@@ -78,10 +78,10 @@ public class LocalAudioPager extends BaseFragment {
     @Override
     public void initDatas() {
         super.initDatas();
-        getLocalVideoData();
+        getLocalAudioData();
     }
 
-    private void getLocalVideoData() {
+    private void getLocalAudioData() {
         new Thread(){
             public void run(){
                 mediaItems = new ArrayList<MediaItem>();

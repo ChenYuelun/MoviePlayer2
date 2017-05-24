@@ -7,6 +7,7 @@ import java.io.Serializable;
  */
 
 public class MediaItem implements Serializable {
+    private String artist;
     private String content;
     private String icon;
     private String name;
@@ -21,6 +22,14 @@ public class MediaItem implements Serializable {
         this.data = data;
         this.icon = icon;
         this.content =content;
+    }
+
+    public MediaItem(String name, long duration, long size, String data, String artist) {
+        this.name = name;
+        this.duration = duration;
+        this.size = size;
+        this.data = data;
+        this.artist = artist;
     }
 
     public String getContent() {
