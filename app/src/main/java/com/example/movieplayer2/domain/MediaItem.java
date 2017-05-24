@@ -32,6 +32,14 @@ public class MediaItem implements Serializable {
         this.artist = artist;
     }
 
+    public String getArtist() {
+        return artist;
+    }
+
+    public void setArtist(String artist) {
+        this.artist = artist;
+    }
+
     public String getContent() {
         return content;
     }

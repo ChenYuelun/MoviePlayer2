@@ -1,10 +1,15 @@
 package com.example.movieplayer2.Activity;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.drawable.AnimationDrawable;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,13 +23,15 @@ import android.widget.TextView;
 import com.example.movieplayer2.IMusicPlayService;
 import com.example.movieplayer2.R;
 import com.example.movieplayer2.service.MusicPlayService;
+import com.example.movieplayer2.utils.Utils;
 
+import static android.R.attr.duration;
 import static com.example.movieplayer2.R.id.iv_icon;
 
 public class LocalAudioPlayerActivity extends AppCompatActivity implements View.OnClickListener {
 
 
-
+    private static final int PROGRESS = 1;
     private ImageView ivIcon;
     private TextView tvArtist;
     private TextView tvAudioname;
@@ -38,6 +45,7 @@ public class LocalAudioPlayerActivity extends AppCompatActivity implements View.
     private Button btnLyric;
     private int position;
     private IMusicPlayService service;
+    private int duration;
     private ServiceConnection conn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder iBinder) {
@@ -56,6 +64,9 @@ public class LocalAudioPlayerActivity extends AppCompatActivity implements View.
 
         }
     };
+
+    private Utils utils;
+    private MyReceiver receiver;
 
     /**
      * Find the Views in the layout<br />
@@ -84,6 +95,28 @@ public class LocalAudioPlayerActivity extends AppCompatActivity implements View.
         btnLyric.setOnClickListener( this );
     }
 
+
+
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case PROGRESS :
+                    try {
+                        int currentPosition = service.getCurrentPosition();
+                        seekbarAudio.setProgress(currentPosition);
+                        tvTime.setText(utils.stringForTime(currentPosition) + "/" + utils.stringForTime(duration));
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+
+                    removeMessages(PROGRESS);
+                    sendEmptyMessageDelayed(PROGRESS,1000);
+                    break;
+            }
+        }
+    };
     /**
      * Handle button click events<br />
      * <br />
@@ -133,9 +166,56 @@ public class LocalAudioPlayerActivity extends AppCompatActivity implements View.
         bindService(intent,conn,BIND_AUTO_CREATE);
         startService(intent);
 
+        initData();
+
+    }
+
+    private void initData() {
+        utils = new Utils();
+        receiver = new MyReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MusicPlayService.OPEN_COMPLETE);
+        registerReceiver(receiver,filter);
+    }
+
+    class MyReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            setViewData();
+        }
+    }
+
+    private void setViewData() {
+        try {
+            tvArtist.setText(service.getArtistName());
+            tvAudioname.setText(service.getAudioName());
+            duration = service.getDuration();
+            seekbarAudio.setMax(duration);
+
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        handler.sendEmptyMessage(PROGRESS);
+
     }
 
     private void getData() {
         position = getIntent().getIntExtra("position", 0);
+    }
+    @Override
+    protected void onDestroy() {
+
+        if(conn != null){
+            unbindService(conn);
+            conn = null;
+        }
+
+        if(receiver != null){
+            unregisterReceiver(receiver);
+            receiver = null;
+        }
+
+        super.onDestroy();
     }
 }

@@ -18,8 +18,11 @@ import com.example.movieplayer2.domain.MediaItem;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static android.R.attr.action;
+
 public class MusicPlayService extends Service {
 
+    public static final String OPEN_COMPLETE = "com.atguigu.mobileplayer.OPEN_COMPLETE";
     private IMusicPlayService.Stub stub = new IMusicPlayService.Stub() {
         MusicPlayService service = MusicPlayService.this;
         @Override
@@ -193,8 +196,15 @@ public class MusicPlayService extends Service {
     private class MyOnPreparedListener implements MediaPlayer.OnPreparedListener {
         @Override
         public void onPrepared(MediaPlayer mp) {
+            notifyChange(OPEN_COMPLETE);
             start();
         }
+    }
+
+    private void notifyChange(String action) {
+        Intent intent = new Intent(action);
+        sendBroadcast(intent);
+
     }
 
     private class MyOnErrorListener implements MediaPlayer.OnErrorListener {
@@ -233,7 +243,7 @@ public class MusicPlayService extends Service {
      * @return
      */
     private String getArtistName() {
-        return "";
+        return mediaItem.getArtist();
     }
 
     /**
@@ -242,7 +252,7 @@ public class MusicPlayService extends Service {
      * @return
      */
     private String getAudioName() {
-        return "";
+        return mediaItem.getName();
     }
 
 
@@ -252,7 +262,7 @@ public class MusicPlayService extends Service {
      * @return
      */
     private String getAudioPath() {
-        return "";
+        return mediaItem.getData();
     }
 
     /**
@@ -261,7 +271,7 @@ public class MusicPlayService extends Service {
      * @return
      */
     private int getDuration() {
-        return 0;
+        return mediaPlayer.getDuration();
     }
 
 
@@ -271,7 +281,7 @@ public class MusicPlayService extends Service {
      * @return
      */
     private int getCurrentPosition() {
-        return 0;
+        return mediaPlayer.getCurrentPosition();
     }
 
     /**
@@ -280,6 +290,7 @@ public class MusicPlayService extends Service {
      * @param position
      */
     private void seekTo(int position) {
+        mediaPlayer.seekTo(position);
     }
 
     /**
