@@ -167,7 +167,33 @@ public class LocalAudioPlayerActivity extends AppCompatActivity implements View.
         startService(intent);
 
         initData();
+        setListener();
 
+    }
+
+    private void setListener() {
+        seekbarAudio.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser) {
+                    try {
+                        service.seekTo(progress);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
     }
 
     private void initData() {
