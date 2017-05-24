@@ -282,7 +282,8 @@
             android:launchMode="singleTask"
             android:screenOrientation="landscape"
             android:theme="@style/noAnimation_Theme" />
-        <activity android:name=".Activity.LocalAudioPlayerActivity" />
+        <activity android:name=".Activity.LocalAudioPlayerActivity"
+            android:launchMode="singleTask"/>
 
         <service
             android:name=".service.MusicPlayService"

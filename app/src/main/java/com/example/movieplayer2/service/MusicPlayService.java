@@ -98,6 +98,16 @@ public class MusicPlayService extends Service {
         public boolean isPlaying() throws RemoteException {
             return mediaPlayer.isPlaying();
         }
+
+        @Override
+        public void setPlayMode(int PlayMode) throws RemoteException {
+            service.setPlayMode(PlayMode);
+        }
+
+        @Override
+        public int getPlayMOde() throws RemoteException {
+            return service.getPlayMode();
+        }
     };
 
 
@@ -107,8 +117,30 @@ public class MusicPlayService extends Service {
     private ArrayList<MediaItem> mediaItems;
     private MediaPlayer mediaPlayer;
 
-    private int position;
+    public int position;
     private MediaItem mediaItem;
+    public static boolean nextFromUser = false;
+
+
+    /**
+     * 顺序播放
+     */
+    public static final int REPEAT_NORMAL = 1;
+
+    /**
+     * 单曲循环播放
+     */
+    public static final int REPEAT_SINGLE = 2;
+
+    /**
+     * 全部循环播放
+     */
+    public static final int REPEAT_ALL = 3;
+
+    /**
+     * 播放模式
+     */
+    private int playmode = REPEAT_NORMAL;
 
     public MusicPlayService() {
     }
@@ -195,7 +227,7 @@ public class MusicPlayService extends Service {
 
 
             }else {
-                Toast.makeText(MusicPlayService.this, "音频还未准备好", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MusicPlayService.this, "已到最后一首", Toast.LENGTH_SHORT).show();
             }
 
         }
@@ -228,6 +260,7 @@ public class MusicPlayService extends Service {
     private class MyOnCompletionListener implements MediaPlayer.OnCompletionListener {
         @Override
         public void onCompletion(MediaPlayer mp) {
+            
             next();
         }
     }
@@ -236,7 +269,6 @@ public class MusicPlayService extends Service {
     /**
      * 播放音频
      */
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void start() {
         mediaPlayer.start();
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -249,7 +281,7 @@ public class MusicPlayService extends Service {
                 .setContentText("正在播放："+getAudioName())
                 .setContentIntent(pi)
                 .build();
-        nm.notify(1,notifation);
+         nm.notify(1,notifation);
     }
 
     /**
@@ -320,13 +352,53 @@ public class MusicPlayService extends Service {
      * 播放下一个
      */
     private void next() {
+
+        if(playmode != REPEAT_SINGLE || nextFromUser) {
+            position++;
+            nextFromUser = false;
+            if(position > mediaItems.size()-1) {
+                if(playmode == REPEAT_NORMAL || playmode == REPEAT_SINGLE) {
+                    position = mediaItems.size()-1;
+                    Toast.makeText(MusicPlayService.this, "已到最后一首", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(playmode == REPEAT_ALL) {
+                    position = 0;
+                }
+            }
+        }
+        openAudio(position);
     }
+
+
 
     /**
      * 播放上一个
      */
     private void pre() {
+
+        if(playmode != REPEAT_SINGLE || nextFromUser) {
+            position--;
+            nextFromUser = false;
+            if(position < 0) {
+                if(playmode == REPEAT_NORMAL || playmode == REPEAT_SINGLE ) {
+                    position = 0;
+                    Toast.makeText(MusicPlayService.this, "已是第一首", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if(playmode == REPEAT_ALL) {
+                    position = mediaItems.size() - 1;
+                }
+            }
+
+        }
+        openAudio(position);
     }
 
-
+    private int getPlayMode(){
+        return playmode;
+    }
+    private void setPlayMode(int playmode){
+        this.playmode = playmode;
+    }
 }
