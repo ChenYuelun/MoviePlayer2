@@ -52,7 +52,12 @@ public class LocalAudioPlayerActivity extends AppCompatActivity implements View.
             service = IMusicPlayService.Stub.asInterface(iBinder);
             if(service != null){
                 try {
-                    service.openAudio(position);
+                    if(notification) {
+                        setViewData();
+                    }else {
+
+                        service.openAudio(position);
+                    }
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -67,6 +72,7 @@ public class LocalAudioPlayerActivity extends AppCompatActivity implements View.
 
     private Utils utils;
     private MyReceiver receiver;
+    private boolean notification;
 
     /**
      * Find the Views in the layout<br />
@@ -227,7 +233,11 @@ public class LocalAudioPlayerActivity extends AppCompatActivity implements View.
     }
 
     private void getData() {
-        position = getIntent().getIntExtra("position", 0);
+        notification = getIntent().getBooleanExtra("notification", false);
+        if(!notification) {
+            position = getIntent().getIntExtra("position", 0);
+        }
+
     }
     @Override
     protected void onDestroy() {

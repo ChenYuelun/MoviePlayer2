@@ -1,18 +1,25 @@
 package com.example.movieplayer2.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.MediaStore;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.movieplayer2.Activity.LocalAudioPlayerActivity;
 import com.example.movieplayer2.IMusicPlayService;
+import com.example.movieplayer2.R;
 import com.example.movieplayer2.domain.MediaItem;
 
 import java.io.IOException;
@@ -23,6 +30,7 @@ import static android.R.attr.action;
 public class MusicPlayService extends Service {
 
     public static final String OPEN_COMPLETE = "com.atguigu.mobileplayer.OPEN_COMPLETE";
+    private NotificationManager nm;
     private IMusicPlayService.Stub stub = new IMusicPlayService.Stub() {
         MusicPlayService service = MusicPlayService.this;
         @Override
@@ -35,6 +43,7 @@ public class MusicPlayService extends Service {
             service.openAudio(position);
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
         public void start() throws RemoteException {
             service.start();
@@ -194,6 +203,7 @@ public class MusicPlayService extends Service {
 
 
     private class MyOnPreparedListener implements MediaPlayer.OnPreparedListener {
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
         public void onPrepared(MediaPlayer mp) {
             notifyChange(OPEN_COMPLETE);
@@ -226,8 +236,20 @@ public class MusicPlayService extends Service {
     /**
      * 播放音频
      */
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void start() {
         mediaPlayer.start();
+        nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        Intent intent = new Intent(this, LocalAudioPlayerActivity.class);
+        intent.putExtra("notification",true);
+        PendingIntent pi = PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notifation = new Notification.Builder(this)
+                .setSmallIcon(R.drawable.notification_music_playing)
+                .setContentTitle("我的音乐")
+                .setContentText("正在播放："+getAudioName())
+                .setContentIntent(pi)
+                .build();
+        nm.notify(1,notifation);
     }
 
     /**
@@ -235,6 +257,7 @@ public class MusicPlayService extends Service {
      */
     private void pause() {
         mediaPlayer.pause();
+        nm.cancel(1);
     }
 
     /**
