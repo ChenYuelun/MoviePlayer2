@@ -22,6 +22,8 @@ import com.example.movieplayer2.IMusicPlayService;
 import com.example.movieplayer2.R;
 import com.example.movieplayer2.domain.MediaItem;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -238,7 +240,8 @@ public class MusicPlayService extends Service {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
         public void onPrepared(MediaPlayer mp) {
-            notifyChange(OPEN_COMPLETE);
+            //notifyChange(OPEN_COMPLETE);
+            EventBus.getDefault().post(mediaItem);
             start();
         }
     }

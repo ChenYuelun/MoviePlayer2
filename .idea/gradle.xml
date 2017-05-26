@@ -12,7 +12,6 @@
             <option value="$PROJECT_DIR$/StartAllPlayer" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/vitamio" />
-            <option value="$PROJECT_DIR$/vitamio-sample" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
